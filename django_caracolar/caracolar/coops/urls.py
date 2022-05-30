@@ -2,5 +2,5 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.CoopsView, name='cooperativas'),
+    path('jsoncoops', views.JsonView, name='jsoncoops')
 ]

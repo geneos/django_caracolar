@@ -16,6 +16,10 @@ def HomeView(request):
     # return render(request, "index.html", data)
     return HttpResponse('vista')
 
+def HomeMapa(request):
+    ''' Vista por defecto del HOME '''
+    return render(request, "prueba.html", {})
+
 def HomeCategoryView(request):
     ''' Vista para ver los tipos de servicios ofrecidos. '''
     # tmp_ofertas = open("ofertas.html", 'w')
