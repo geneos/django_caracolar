@@ -4,7 +4,7 @@ from django.contrib import admin, messages
 from django.contrib.admin.helpers import ActionForm
 from django import forms
 from django.http import HttpResponse
-from lxml.html.builder import HTML
+#from lxml.html.builder import HTML
 
 from .models import SolicitudCuidadosRecurrencia, SolicitudCuidadosFechas, SolicitudCuidados
 
@@ -69,17 +69,17 @@ class SolicitudCuidadosAdmin(admin.ModelAdmin):
         # return FileResponse(buffer, as_attachment=True, filename='report.pdf')
 
 
-    @admin.action(description="Informe")
-    def emitirInforme(self, request, queryset):
-        htmlstring="<HTML><HEAD><TITLE>Un t&iacute;tulo principal</TITLE></HEAD><BODY><H1>Otro t&iacute;tulo principal</H1></BODY></HTML>"
-        html = HTML(string=htmlstring)
-        main_doc = html.render()
-        pdf = main_doc.write_pdf()
-        return HttpResponse(pdf, content_type='application/pdf')
+    #@admin.action(description="Informe")
+    #def emitirInforme(self, request, queryset):
+    #    htmlstring="<HTML><HEAD><TITLE>Un t&iacute;tulo principal</TITLE></HEAD><BODY><H1>Otro t&iacute;tulo principal</H1></BODY></HTML>"
+    #    html = HTML(string=htmlstring)
+    #    main_doc = html.render()
+    #    pdf = main_doc.write_pdf()
+    #    return HttpResponse(pdf, content_type='application/pdf')
 
     admin.site.add_action(asignar, "Asignar Estado")
     admin.site.add_action(registrarPago, "Registrar Pago")
-    admin.site.add_action(emitirInforme, "Informe 1")
+    #admin.site.add_action(emitirInforme, "Informe 1")
     # admin.site.add_action(emitirInforme2, "Informe 2")
 
     # actions = [asignar, registrarPago]

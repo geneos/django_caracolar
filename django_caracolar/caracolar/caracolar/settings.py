@@ -11,16 +11,23 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import os
 from pathlib import Path
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+env = environ.Env()
+environ.Env.read_env()
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-g@y&m0#znc$0)40g(o!2wq9h6a&j+lnx^%y=gx3*3gp6(3omy-'
+SECRET_KEY = env('SECRET_KEY')
+
+
+DJANGO_SUPERUSER_USERNAME= env('DJANGO_SUPERUSER_USERNAME')
+DJANGO_SUPERUSER_EMAIL= env('DJANGO_SUPERUSER_EMAIL')
+DJANGO_SUPERUSER_PASSWORD= env('DJANGO_SUPERUSER_PASSWORD')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -87,9 +94,9 @@ WSGI_APPLICATION = 'caracolar.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'django_caracolar',
-        'USER': 'django_caracolar',
-        'PASSWORD': 'GeneosCoop2022',
+        'NAME': env('DATABASE_NAME'),
+        'USER': env('DATABASE_USER'),
+        'PASSWORD': env('DATABASE_PASS'),
         'HOST': 'localhost',
         'PORT': '',
     }
