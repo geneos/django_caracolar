@@ -1,39 +1,5 @@
-colorama==0.4.3
-dj-database-url==0.5.0
-Django==3.2
-django-admin-interface==0.19.0
-django-colorfield==0.6.3
-django-flat-responsive==2.0
-django-flat-theme==1.1.4
-django-heroku==0.3.1
-django-import-export==2.8.0
-django-material==1.10.0
-django-material-admin==1.8.6
-dnspython==2.1.0
-duplicity==0.8.12.0
-email-validator==1.1.2
-entrypoints==0.3
-gunicorn==20.1.0
-httplib2==0.14.0
-psutil==5.5.1
-psycopg2==2.8.6
-python-apt==2.0.0+ubuntu0.20.4.7
-python-dateutil==2.7.3
-regex==2020.11.13
-reportlab==3.5.34
-requests==2.22.0
-resources==0.0.1
-simplejson==3.16.0
-SQLAlchemy==1.4.12
-sqlparse==0.4.1
-stdiomask==0.0.6
-StringGenerator==0.4.4
-systemd-python==234
-tablib==3.2.1
-tabulate==0.8.9
-textblob==0.15.3
-tinydb==4.4.0
-tksheet==5.0.25
-views==0.3
-virtualenv==20.0.17
-whitenoise==6.1.0
+-- Cambiar X por el id correspondiente --
+
+UPDATE public.admin_interface_theme
+SET "name"='Django', active=true, title='Gestión Cooperativa', title_visible=true, logo='admin-interface/logo/logo.svg', logo_visible=true, css_header_background_color='#FFFFFF', title_color='#632484', css_header_text_color='#632484', css_header_link_color='#000000', css_header_link_hover_color='#70857B', css_module_background_color='#632484', css_module_text_color='#FFFFFF', css_module_link_color='#FFFFFF', css_module_link_hover_color='#C9F0DD', css_module_rounded_corners=true, css_generic_link_color='#632484', css_generic_link_hover_color='#9536C7', css_save_button_background_color='#632484', css_save_button_background_hover_color='#9536C7', css_save_button_text_color='#FFFFFF', css_delete_button_background_color='#BA2121', css_delete_button_background_hover_color='#A41515', css_delete_button_text_color='#FFFFFF', list_filter_dropdown=true, related_modal_active=true, related_modal_background_color='#000000', related_modal_rounded_corners=true, logo_color='#FFFFFF', recent_actions_visible=true, favicon='', related_modal_background_opacity='0.3', env_name='CARACOLAR', env_visible_in_header=true, env_color='#632484', env_visible_in_favicon=true, related_modal_close_button_visible=true, language_chooser_active=true, language_chooser_display='code', list_filter_sticky=true, form_pagination_sticky=false, form_submit_sticky=false, css_module_background_selected_color='#FFFFCC', css_module_link_selected_color='#FFFFFF', logo_max_height=100, logo_max_width=400, foldable_apps=true
+WHERE id=X;
