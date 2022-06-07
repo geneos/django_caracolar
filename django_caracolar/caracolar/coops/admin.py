@@ -41,8 +41,10 @@ class CaracteristicaAsociadxsTabularInline(admin.TabularInline):
 class AsociadxAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'apellido', 'ciudad', 'ingreso')
     search_fields = ('nombre', 'apellido', 'email')
+    list_filter= ('ciudad',)
     # inlines = [CaracteristicaAsociadxsTabularInline, SolicitudCuidadosAsignacionTabularInline]
     inlines = [CaracteristicaAsociadxsTabularInline]
+    readonly_fields=['ingreso', 'usuarix']
 
 admin.site.register(Asociadx, AsociadxAdmin)
 

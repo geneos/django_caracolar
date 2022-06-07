@@ -17,10 +17,11 @@ class CaracteristicaClientxTabularInline(admin.TabularInline):
 
 class ClientxAdmin(admin.ModelAdmin):
     list_display = ['nombre', 'apellido', 'ciudad']
-    search_fields = ('nombre', 'descripcion')
+    search_fields = ('nombre', 'cuit', 'descripcion')
+    list_filter= ('ciudad',)
     inlines = [CaracteristicaClientxTabularInline]
+    readonly_fields=['ingreso', 'usuarix']
 
 admin.site.register(Clientx, ClientxAdmin)
-
 admin.site.register(CaracteristicaClientx)
 

@@ -1,11 +1,13 @@
 import random
 import string
+from datetime import date
 
 from django.contrib.auth.models import User
 from django.db import models
 
 # Create your models here.
 from coops.models import Caracteristica, Cooperativa
+
 from param.models import Ciudad
 
 
@@ -13,12 +15,12 @@ class Clientx(models.Model):
     ''' Modelo para representar lxs clientxs que pueden solicitar servicios en la plataforma '''
     nombre = models.CharField(max_length=200)
     apellido = models.CharField(max_length=200)
-    cuit = models.CharField(max_length=11, unique=True)
+    cuit = models.CharField("Cuit/Cuil", max_length=11, unique=True)
     direccion = models.CharField(max_length=100)
     ciudad = models.ForeignKey(Ciudad, models.CASCADE)
     telefono = models.CharField(max_length=20)
     email = models.CharField(max_length=100)
-    ingreso = models.DateField()
+    ingreso = models.DateField("Fecha de ingreso", default=date.today)
     cooperativa = models.ForeignKey(Cooperativa, models.CASCADE)
     usuarix = models.ForeignKey(User, models.CASCADE, blank=True, null=True)
 
@@ -41,7 +43,7 @@ class Clientx(models.Model):
             user = User.objects.create_user(username, self.email, clave)
             user.save()
             self.usuarix = user
-
+            #falta mandar mail
 
 class CaracteristicaClientx(models.Model):
     ''' Modelo para representar la relación de una característica con unx clientx.

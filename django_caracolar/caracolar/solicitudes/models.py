@@ -1,3 +1,5 @@
+from datetime import date, datetime
+
 from django.db import models
 
 # Create your models here.
@@ -21,16 +23,15 @@ class SolicitudCuidados(models.Model):
     ]
     clientx = models.ForeignKey(Clientx, models.CASCADE)
     servicio = models.ForeignKey(ServicioCuidado, models.CASCADE)
-
-    fecha = models.DateField()  # Día de la solicitud del servicio
+    fecha = models.DateField(default=date.today)  # Día de la solicitud del servicio
 
     # Cambio por anexo de modelo SolicitudCuidadosFechas
     # horaInicio = models.TimeField()                                 # Hora de inicio de la solicitud del servicio
     # horaFin = models.TimeField()                                    # Hora de finalización de la solicitud del servicio
 
     recurrencia = models.BooleanField()                             # Recurrente SI/NO
-    costo = models.FloatField(null=True)
-    montoPagado = models.FloatField(null=True)
+    costo = models.FloatField("Costo de referencia del servicio", null=True, blank=True)
+    montoPagado = models.FloatField(default=0)
     medioPago = models.ForeignKey(MedioPago, models.CASCADE)
     estado = models.IntegerField(choices=estados, default= 1)                         # Estados de la solicitud del servicio
     cooperativa = models.ForeignKey(Cooperativa, models.CASCADE)
@@ -42,15 +43,6 @@ class SolicitudCuidados(models.Model):
         verbose_name_plural = "Solicitudes de Cuidado"
 
     def save(self, *args, **kwargs):
-        '''
-            Se debe analizar el flujo de creación de Movimientos Financieros.
-        '''
-        self.montoPagado = 22222
-        self.costo = 11111
-        # import pdb
-        # pdb.set_trace()
-        # c >> continuar para saltear
-        # n >> next
         self.costo = self.servicio.costoReferencia
         super(SolicitudCuidados, self).save(*args, **kwargs)
 
@@ -74,8 +66,21 @@ class SolicitudCuidadosRecurrencia(models.Model):
     dia = models.IntegerField(choices=dias, default= 1)    # Día de la solicitud de recurrencia del servicio
     horaInicio = models.TimeField()
     horaFin = models.TimeField()
-    tiempo = models.IntegerField()          # Tiempo en minutos de la solicitud del servicio (campo calculado)
+    tiempo = models.CharField(max_length=17,blank=True)          # Tiempo en minutos de la solicitud del servicio (campo calculado)
     cooperativa = models.ForeignKey(Cooperativa, models.CASCADE)
+
+    def segundos_a_segundos_minutos_y_horas(self,segundos): #funcion para guardar hora y minuto hh:mm a partir de la cantidad de segundos
+        horas = int(segundos / 60 / 60)
+        segundos -= horas*60*60
+        minutos = int(segundos/60)
+        segundos -= minutos*60
+        return f"{horas:02d}:{minutos:02d}"
+
+    def save(self, *args, **kwargs):
+            segundos = int((datetime.strptime(str(self.horaFin), '%H:%M:%S')-
+			datetime.strptime(str(self.horaInicio), '%H:%M:%S')).seconds)
+            self.tiempo= self.segundos_a_segundos_minutos_y_horas(segundos)
+            super(SolicitudCuidadosRecurrencia, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.solicitud}: {self.dia} - Desde: {self.horaInicio} Hasta: {self.horaFin}"
@@ -94,6 +99,19 @@ class SolicitudCuidadosFechas(models.Model):
     horaFin = models.TimeField()
     tiempo = models.IntegerField()          # Tiempo en minutos de la solicitud del servicio (campo calculado)
     cooperativa = models.ForeignKey(Cooperativa, models.CASCADE)
+
+    def segundos_a_segundos_minutos_y_horas(self,segundos): #funcion para guardar hora y minuto hh:mm a partir de la cantidad de segundos
+        horas = int(segundos / 60 / 60)
+        segundos -= horas*60*60
+        minutos = int(segundos/60)
+        segundos -= minutos*60
+        return f"{horas:02d}:{minutos:02d}"
+
+    def save(self, *args, **kwargs):
+            segundos = int((datetime.strptime(str(self.horaFin), '%H:%M:%S')-
+			datetime.strptime(str(self.horaInicio), '%H:%M:%S')).seconds)
+            self.tiempo= self.segundos_a_segundos_minutos_y_horas(segundos)
+            super(SolicitudCuidadosRecurrencia, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.solicitud}: {self.dia} - Desde: {self.horaInicio} Hasta: {self.horaFin}"
