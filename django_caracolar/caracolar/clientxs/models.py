@@ -15,7 +15,7 @@ class Clientx(models.Model):
     ''' Modelo para representar lxs clientxs que pueden solicitar servicios en la plataforma '''
     nombre = models.CharField(max_length=200)
     apellido = models.CharField(max_length=200)
-    cuit = models.CharField("Cuit/Cuil", max_length=11, unique=True)
+    cuit = models.CharField("Cuit/Cuil", max_length=11, unique=True, null=True, blank=True)
     direccion = models.CharField(max_length=100)
     ciudad = models.ForeignKey(Ciudad, models.CASCADE)
     telefono = models.CharField(max_length=20)
@@ -34,7 +34,6 @@ class Clientx(models.Model):
         ''' La función save cuando se ejecuta por primera vez crea un usuario para asociarle al cliente.
             Envía los datos de acceso, al correo electrónico del cliente (PENDIENTE).
         '''
-        super(Clientx,self).save(*args, **kwargs)
         username = self.nombre + '.' + self.apellido
         if not User.objects.filter(username=username).first():
             # clave = StringGenerator("[\l\d]{10}").render_list(3, unique=True)
@@ -44,6 +43,7 @@ class Clientx(models.Model):
             user.save()
             self.usuarix = user
             #falta mandar mail
+        super(Clientx,self).save(*args, **kwargs)
 
 class CaracteristicaClientx(models.Model):
     ''' Modelo para representar la relación de una característica con unx clientx.

@@ -55,6 +55,11 @@ class CooperativaAdmin(admin.ModelAdmin):
     inlines = [AsociadxTabularInline]
     # data = "CARACOL - AR"
     # change_form_template = 'admin/cooperativa/cooperativa_list.html'
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 admin.site.register(Caracteristica)
 admin.site.register(CaracteristicaAsociadxs)

@@ -16,7 +16,7 @@ class Cooperativa(models.Model):
     matricula = models.CharField(max_length=200, unique=True)
     cuit = models.CharField(max_length=11, unique=True)
     direccion = models.CharField(max_length=100)
-    ciudad = models.ForeignKey(Ciudad, models.CASCADE)
+    ciudad = models.ForeignKey(Ciudad, models.CASCADE,null=True)
     telefono = models.CharField(max_length=20)
     email = models.CharField(max_length=100)
 
@@ -89,7 +89,7 @@ class Asociadx(models.Model):
     nombre = models.CharField(max_length=200)
     apellido = models.CharField(max_length=200)
     cuit = models.CharField("Cuil/Cuit", max_length=11, unique=True)
-    direccion = models.CharField(max_length=100,  blank=True, null= True)
+    direccion = models.CharField(max_length=100,  blank=True, null=True)
     ciudad = models.ForeignKey(Ciudad, models.CASCADE)
     telefono = models.CharField(max_length=20)
     email = models.CharField(max_length=100)
@@ -104,7 +104,6 @@ class Asociadx(models.Model):
         verbose_name_plural = "Asociadxs"
 
     def save(self, *args, **kwargs):
-        super(Asociadx,self).save(*args, **kwargs)
         username = self.nombre + '.' + self.apellido
         if not User.objects.filter(username=username).first():
             # clave = StringGenerator("[\l\d]{10}").render_list(3, unique=True)
@@ -114,6 +113,7 @@ class Asociadx(models.Model):
             user.save()
             self.usuarix = user
         #falta el mail
+        super(Asociadx,self).save(*args, **kwargs)
 
 
 class Caracteristica(models.Model):

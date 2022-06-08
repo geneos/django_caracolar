@@ -5,6 +5,7 @@ from django.contrib.admin.helpers import ActionForm
 from django import forms
 from django.http import HttpResponse
 #from lxml.html.builder import HTML
+from django.shortcuts import render
 
 from .models import SolicitudCuidadosRecurrencia, SolicitudCuidadosFechas, SolicitudCuidados
 

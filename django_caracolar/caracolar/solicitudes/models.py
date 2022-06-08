@@ -8,6 +8,7 @@ from coops.models import Cooperativa, ServicioCuidado, Asociadx
 from clientxs.models import Clientx
 from param.models import MedioPago
 
+from param.models import Ciudad
 
 
 class SolicitudCuidados(models.Model):
@@ -30,7 +31,7 @@ class SolicitudCuidados(models.Model):
     # horaFin = models.TimeField()                                    # Hora de finalización de la solicitud del servicio
 
     recurrencia = models.BooleanField()                             # Recurrente SI/NO
-    costo = models.FloatField("Costo de referencia del servicio", null=True, blank=True)
+    costo = models.FloatField("Costo del servicio", null=True, blank=True, help_text='El costo es semanal')
     montoPagado = models.FloatField(default=0)
     medioPago = models.ForeignKey(MedioPago, models.CASCADE)
     estado = models.IntegerField(choices=estados, default= 1)                         # Estados de la solicitud del servicio
@@ -42,8 +43,22 @@ class SolicitudCuidados(models.Model):
     class Meta:
         verbose_name_plural = "Solicitudes de Cuidado"
 
+    def calcular_costo(self):
+        if self.recurrencia:
+            horarios = SolicitudCuidadosRecurrencia.objects.filter(solicitud=self)
+        else:
+            horarios = SolicitudCuidadosFechas.objects.filter(solicitud=self)
+        hs=0
+        min=0
+        for h in horarios:
+            hs = hs + float(h.tiempo[:2])
+            min = min + float(h.tiempo[3:])
+        hs = hs + min/60
+        return hs*self.servicio.costoReferencia
+
+
     def save(self, *args, **kwargs):
-        self.costo = self.servicio.costoReferencia
+        self.costo = self.calcular_costo()
         super(SolicitudCuidados, self).save(*args, **kwargs)
 
 
