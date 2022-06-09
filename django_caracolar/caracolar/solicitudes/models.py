@@ -22,6 +22,10 @@ class SolicitudCuidados(models.Model):
         (3, 'Finalizada'),
         (4, 'Cancelada'),
     ]
+    tipos = {
+        (1, 'Recurrente'),
+        (2, 'Por fecha'),
+    }
     clientx = models.ForeignKey(Clientx, models.CASCADE)
     servicio = models.ForeignKey(ServicioCuidado, models.CASCADE)
     fecha = models.DateField(default=date.today)  # Día de la solicitud del servicio
@@ -30,7 +34,8 @@ class SolicitudCuidados(models.Model):
     # horaInicio = models.TimeField()                                 # Hora de inicio de la solicitud del servicio
     # horaFin = models.TimeField()                                    # Hora de finalización de la solicitud del servicio
 
-    recurrencia = models.BooleanField()                             # Recurrente SI/NO
+
+    tipo= models.IntegerField("Tipo de servicio", choices=tipos)
     costo = models.FloatField("Costo del servicio", null=True, blank=True, help_text='El costo es semanal')
     montoPagado = models.FloatField(default=0)
     medioPago = models.ForeignKey(MedioPago, models.CASCADE)
@@ -44,7 +49,7 @@ class SolicitudCuidados(models.Model):
         verbose_name_plural = "Solicitudes de Cuidado"
 
     def calcular_costo(self):
-        if self.recurrencia:
+        if self.tipo== 1:
             horarios = SolicitudCuidadosRecurrencia.objects.filter(solicitud=self)
         else:
             horarios = SolicitudCuidadosFechas.objects.filter(solicitud=self)
@@ -112,7 +117,7 @@ class SolicitudCuidadosFechas(models.Model):
     fecha = models.DateField()    # Fecha de la solicitud del servicio
     horaInicio = models.TimeField()
     horaFin = models.TimeField()
-    tiempo = models.IntegerField()          # Tiempo en minutos de la solicitud del servicio (campo calculado)
+    tiempo = models.CharField(max_length=17,blank=True)          # Tiempo en minutos de la solicitud del servicio (campo calculado)
     cooperativa = models.ForeignKey(Cooperativa, models.CASCADE)
 
     def segundos_a_segundos_minutos_y_horas(self,segundos): #funcion para guardar hora y minuto hh:mm a partir de la cantidad de segundos
@@ -126,10 +131,10 @@ class SolicitudCuidadosFechas(models.Model):
             segundos = int((datetime.strptime(str(self.horaFin), '%H:%M:%S')-
 			datetime.strptime(str(self.horaInicio), '%H:%M:%S')).seconds)
             self.tiempo= self.segundos_a_segundos_minutos_y_horas(segundos)
-            super(SolicitudCuidadosRecurrencia, self).save(*args, **kwargs)
+            super(SolicitudCuidadosFechas, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.solicitud}: {self.dia} - Desde: {self.horaInicio} Hasta: {self.horaFin}"
+        return f"{self.solicitud}: {self.fecha} - Desde: {self.horaInicio} Hasta: {self.horaFin}"
 
     class Meta:
         verbose_name_plural = "Fechas Solicitudes de Cuidado"

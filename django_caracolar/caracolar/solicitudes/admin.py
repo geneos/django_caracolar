@@ -54,8 +54,7 @@ class SolicitudCuidadosAdmin(admin.ModelAdmin):
     actions= [asignar, finalizar, cancelar]#, registrarPago]
     inlines = [SolicitudCuidadosRecurrenteTabularInline, SolicitudCuidadosFechasTabularInline]
     list_display = ['fecha', 'clientx', 'servicio', 'estado']
-    readonly_fields= ['fecha', 'montoPagado', 'estado', 'costo']
-
+    readonly_fields= ['fecha', 'montoPagado', 'estado', 'costo',]
 
 
 
