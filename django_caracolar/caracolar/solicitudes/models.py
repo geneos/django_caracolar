@@ -64,6 +64,7 @@ class SolicitudCuidados(models.Model):
 
     def save(self, *args, **kwargs):
         self.costo = self.calcular_costo()
+        self.cooperativa = Cooperativa.objects.first()
         super(SolicitudCuidados, self).save(*args, **kwargs)
 
 
@@ -100,6 +101,7 @@ class SolicitudCuidadosRecurrencia(models.Model):
             segundos = int((datetime.strptime(str(self.horaFin), '%H:%M:%S')-
 			datetime.strptime(str(self.horaInicio), '%H:%M:%S')).seconds)
             self.tiempo= self.segundos_a_segundos_minutos_y_horas(segundos)
+            self.cooperativa = Cooperativa.objects.first()
             super(SolicitudCuidadosRecurrencia, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -131,6 +133,7 @@ class SolicitudCuidadosFechas(models.Model):
             segundos = int((datetime.strptime(str(self.horaFin), '%H:%M:%S')-
 			datetime.strptime(str(self.horaInicio), '%H:%M:%S')).seconds)
             self.tiempo= self.segundos_a_segundos_minutos_y_horas(segundos)
+            self.cooperativa = Cooperativa.objects.first()
             super(SolicitudCuidadosFechas, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -154,4 +157,6 @@ class SolicitudCuidadosAsignacion(models.Model):
     class Meta:
         verbose_name_plural = "Asignación de Solicitudes"
 
-
+    def save(self, *args, **kwargs):
+        self.cooperativa = Cooperativa.objects.first()
+        super(SolicitudCuidadosAsignacion,self).save(*args, **kwargs)

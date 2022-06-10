@@ -43,6 +43,7 @@ class Clientx(models.Model):
             user.save()
             self.usuarix = user
             #falta mandar mail
+        self.cooperativa = Cooperativa.objects.first()
         super(Clientx,self).save(*args, **kwargs)
 
 class CaracteristicaClientx(models.Model):
@@ -60,3 +61,6 @@ class CaracteristicaClientx(models.Model):
     class Meta:
         verbose_name_plural = "Características de Clientxs"
 
+    def save(self, *args, **kwargs):
+        self.cooperativa = Cooperativa.objects.first()
+        super(CaracteristicaClientx,self).save(*args, **kwargs)

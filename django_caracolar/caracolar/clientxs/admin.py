@@ -16,6 +16,7 @@ from solicitudes.models import SolicitudCuidados, SolicitudCuidadosRecurrencia,S
 class CaracteristicaClientxTabularInline(admin.TabularInline):
     model = CaracteristicaClientx
     can_delete = True
+    readonly_fields = ['cooperativa']
 
     # def has_add_permission(self, request, obj=None):
     #     return False
@@ -275,9 +276,12 @@ class ClientxAdmin(admin.ModelAdmin):
     search_fields = ('nombre', 'cuit', 'descripcion')
     list_filter= ('ciudad',)
     inlines = [CaracteristicaClientxTabularInline]
-    readonly_fields=['ingreso', 'usuarix']
+    readonly_fields=['ingreso', 'usuarix', 'cooperativa']
     actions = [emitirInformeCliente, emitirInformeClienteHistorial]
 
+class CaracteristicaClientxAdmin(admin.ModelAdmin):
+    readonly_fields = ['cooperativa']
+
 admin.site.register(Clientx, ClientxAdmin)
-admin.site.register(CaracteristicaClientx)
+admin.site.register(CaracteristicaClientx,CaracteristicaClientxAdmin)
 

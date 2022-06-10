@@ -39,6 +39,9 @@ class TipoServicio(models.Model):
     class Meta:
         verbose_name_plural = "Tipos de Servicios"
 
+    def save(self, *args, **kwargs):
+        self.cooperativa = Cooperativa.objects.first()
+        super(TipoServicio,self).save(*args, **kwargs)
 
 class ServicioCuidado(models.Model):
     ''' Modelo para representar servicios de cuidados '''
@@ -55,6 +58,10 @@ class ServicioCuidado(models.Model):
     class Meta:
         verbose_name_plural = "Servicios de Cuidado"
 
+    def save(self, *args, **kwargs):
+        self.cooperativa = Cooperativa.objects.first()
+        super(ServicioCuidado,self).save(*args, **kwargs)
+
 
 class CaracteristicaCuidado(models.Model):
     ''' Modelo para representar caractyerísticas de los servicios de cuidados '''
@@ -69,6 +76,9 @@ class CaracteristicaCuidado(models.Model):
     class Meta:
         verbose_name_plural = "Características de Cuidado"
 
+    def save(self, *args, **kwargs):
+        self.cooperativa = Cooperativa.objects.first()
+        super(CaracteristicaCuidado,self).save(*args, **kwargs)
 
 class ServicioCaracteristicaCuidado(models.Model):
     ''' Modelo para representar la relación de una característica con un servicio de cuidados.
@@ -83,6 +93,10 @@ class ServicioCaracteristicaCuidado(models.Model):
 
     class Meta:
         verbose_name_plural = "Características de Servicios de Cuidado"
+
+    def save(self, *args, **kwargs):
+        self.cooperativa = Cooperativa.objects.first()
+        super(ServicioCaracteristicaCuidado,self).save(*args, **kwargs)
 
 class Asociadx(models.Model):
     ''' Modelo para representar lxs asociadxs (prestadorxs de servicios) a una cooperativa '''
@@ -113,6 +127,7 @@ class Asociadx(models.Model):
             user.save()
             self.usuarix = user
         #falta el mail
+        self.cooperativa = Cooperativa.objects.first()
         super(Asociadx,self).save(*args, **kwargs)
 
 
@@ -126,6 +141,10 @@ class Caracteristica(models.Model):
 
     class Meta:
         verbose_name_plural = "Características de Asociadx"
+
+    def save(self, *args, **kwargs):
+        self.cooperativa = Cooperativa.objects.first()
+        super(Caracteristica,self).save(*args, **kwargs)
 
 
 class CaracteristicaAsociadxs(models.Model):
@@ -141,3 +160,7 @@ class CaracteristicaAsociadxs(models.Model):
 
     class Meta:
         verbose_name_plural = "Asignación de Características de Asociadx"
+
+    def save(self, *args, **kwargs):
+        self.cooperativa = Cooperativa.objects.first()
+        super(CaracteristicaAsociadxs,self).save(*args, **kwargs)

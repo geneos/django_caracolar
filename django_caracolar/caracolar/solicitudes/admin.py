@@ -12,12 +12,12 @@ from .models import SolicitudCuidadosRecurrencia, SolicitudCuidadosFechas, Solic
 
 class SolicitudCuidadosRecurrenteTabularInline(admin.TabularInline):
     model = SolicitudCuidadosRecurrencia
-    readonly_fields = ['tiempo'] #el tiempo no se puede editar porque se calcula solo
+    readonly_fields = ['tiempo', 'cooperativa'] #el tiempo no se puede editar porque se calcula solo
     can_delete = True
 
 class SolicitudCuidadosFechasTabularInline(admin.TabularInline):
     model = SolicitudCuidadosFechas
-    readonly_fields = ['tiempo']
+    readonly_fields = ['tiempo', 'cooperativa']
     can_delete = True
 
 class UpdateActionForm(ActionForm):
@@ -54,7 +54,7 @@ class SolicitudCuidadosAdmin(admin.ModelAdmin):
     actions= [asignar, finalizar, cancelar]#, registrarPago]
     inlines = [SolicitudCuidadosRecurrenteTabularInline, SolicitudCuidadosFechasTabularInline]
     list_display = ['fecha', 'clientx', 'servicio', 'estado']
-    readonly_fields= ['fecha', 'montoPagado', 'estado', 'costo',]
+    readonly_fields= ['fecha', 'montoPagado', 'estado', 'costo', 'cooperativa']
 
 
 
