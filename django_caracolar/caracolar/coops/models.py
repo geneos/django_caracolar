@@ -3,6 +3,8 @@ import string
 from datetime import date
 
 from django.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from param.models import Ciudad
 from django.contrib.auth.models import User
 
@@ -130,6 +132,11 @@ class Asociadx(models.Model):
         self.cooperativa = Cooperativa.objects.first()
         super(Asociadx,self).save(*args, **kwargs)
 
+@receiver(post_delete, sender=Asociadx)
+def asociadx_delete_handler(sender, instance, **kwargs):
+    """ Cuando se borra un asociado se llama a esta funcion para eliminar su usuario"""
+    u = User.objects.get(username = instance.nombre+'.'+instance.apellido)
+    u.delete()
 
 class Caracteristica(models.Model):
     ''' Modelo para representar características de lxs asociadxs '''

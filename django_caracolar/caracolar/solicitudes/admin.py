@@ -6,6 +6,7 @@ from django import forms
 from django.http import HttpResponse
 #from lxml.html.builder import HTML
 from django.shortcuts import render
+from django.db import models
 
 from .models import SolicitudCuidadosRecurrencia, SolicitudCuidadosFechas, SolicitudCuidados
 
@@ -56,8 +57,8 @@ class SolicitudCuidadosAdmin(admin.ModelAdmin):
     list_display = ['fecha', 'clientx', 'servicio', 'estado']
     readonly_fields= ['fecha', 'montoPagado', 'estado', 'costo', 'cooperativa']
 
-
-
+    def get_queryset(self,request):
+        return super(SolicitudCuidadosAdmin, self).get_queryset(request).filter(tipo=1)
 
 admin.site.register(SolicitudCuidados,SolicitudCuidadosAdmin)
 

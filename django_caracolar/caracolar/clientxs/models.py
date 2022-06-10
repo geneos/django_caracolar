@@ -7,9 +7,10 @@ from django.db import models
 
 # Create your models here.
 from coops.models import Caracteristica, Cooperativa
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 from param.models import Ciudad
-
 
 class Clientx(models.Model):
     ''' Modelo para representar lxs clientxs que pueden solicitar servicios en la plataforma '''
@@ -45,6 +46,12 @@ class Clientx(models.Model):
             #falta mandar mail
         self.cooperativa = Cooperativa.objects.first()
         super(Clientx,self).save(*args, **kwargs)
+
+@receiver(post_delete, sender=Clientx)
+def clientx_delete_handler(sender, instance, **kwargs):
+    """ Cuando se borra un cliente se llama a esta funcion para eliminar su usuario"""
+    u = User.objects.get(username = instance.nombre+'.'+instance.apellido)
+    u.delete()
 
 class CaracteristicaClientx(models.Model):
     ''' Modelo para representar la relación de una característica con unx clientx.
