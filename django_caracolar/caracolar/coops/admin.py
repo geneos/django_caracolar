@@ -1,4 +1,8 @@
 from django.contrib import admin
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
+
+from .form import fechasForm
 from .models import Cooperativa, TipoServicio, ServicioCuidado, CaracteristicaCuidado, ServicioCaracteristicaCuidado, \
     Asociadx, CaracteristicaAsociadxs, Caracteristica
 
@@ -50,9 +54,26 @@ class AsociadxAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'apellido', 'ciudad', 'ingreso')
     search_fields = ('nombre', 'apellido', 'email')
     list_filter= ('ciudad',)
+    actions = ['crearInforme']
     # inlines = [CaracteristicaAsociadxsTabularInline, SolicitudCuidadosAsignacionTabularInline]
     inlines = [CaracteristicaAsociadxsTabularInline]
     readonly_fields=['ingreso', 'usuarix', 'cooperativa']
+
+    def crearInforme(self, request, queryset):
+        if 'apply' in request.POST:  # if user pressed 'apply' on intermediate page
+            print(request.POST['fecha_inicio'])
+            print(request.POST['fecha_fin'])
+            # LLAMAR A LA FUNCION PARA CREAR EL INFORME
+            # Return to previous page
+            return HttpResponseRedirect(request.get_full_path())
+
+        # Create form and pass the data which objects were selected before triggering 'broadcast' action
+        # We create an intermediate page right here
+        form = fechasForm(initial={'_selected_action': queryset.values_list('id', flat=True)})
+
+        # We need to create a template of intermediate page with form - but this is really easy
+        return render(request, './fechas.html', {'items': queryset, 'form': form})
+    crearInforme.short_description = "Generar informe de asociadxs"
 
 class CooperativaAdmin(admin.ModelAdmin):
     list_display = ('razon_social', 'matricula', 'ciudad')

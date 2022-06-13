@@ -1,0 +1,15 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<form action="" method="post">
+  {% csrf_token %}
+<p>
+Indique la fecha inicio y fin
+</p>
+<p>
+  {{ form }}
+</p>
+  <input type="hidden" name="action" value="crearInforme" />
+  <input type="submit" name="apply" value="Generar informe"/>
+</form>
+{% endblock %}

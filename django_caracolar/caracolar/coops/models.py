@@ -5,10 +5,13 @@ from datetime import date
 from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from param.models import Ciudad
 from django.contrib.auth.models import User
 
 # Create your models here.
+
 class Cooperativa(models.Model):
     ''' Modelo para representar cooperativas
         Algunos modelos van a estar asociados al este modelo,
