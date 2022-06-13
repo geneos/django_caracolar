@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.db import models
 
-from .models import SolicitudCuidadosRecurrencia, SolicitudCuidadosFechas, SolicitudCuidados
+from .models import SolicitudCuidadosRecurrencia, SolicitudCuidadosFechas, SolicitudCuidados, SolicitudCuidadosProxy
 
 
 class SolicitudCuidadosRecurrenteTabularInline(admin.TabularInline):
@@ -20,6 +20,7 @@ class SolicitudCuidadosFechasTabularInline(admin.TabularInline):
     model = SolicitudCuidadosFechas
     readonly_fields = ['tiempo', 'cooperativa']
     can_delete = True
+
 
 class UpdateActionForm(ActionForm):
 	monto = forms.IntegerField()
@@ -47,7 +48,7 @@ def registrarPago(self, request, queryset):
     monto = float(monto_str)
     queryset.update(montoPagado=monto)
     messages.success(request, "Monto Pagado Actualizado correctamente")
-
+"""
 #Administrador Solicitud de cuidados
 class SolicitudCuidadosAdmin(admin.ModelAdmin):
     icon_name = 'gamepad'
@@ -60,5 +61,32 @@ class SolicitudCuidadosAdmin(admin.ModelAdmin):
     def get_queryset(self,request):
         return super(SolicitudCuidadosAdmin, self).get_queryset(request).filter(tipo=1)
 
-admin.site.register(SolicitudCuidados,SolicitudCuidadosAdmin)
+admin.site.register(SolicitudCuidados,SolicitudCuidadosAdmin)"""
 
+#Administrador Solicitud de cuidados
+class SolicitudCuidadosAdmin(admin.ModelAdmin):
+    icon_name = 'gamepad'
+   # action_form = UpdateActionForm
+    actions= [asignar, finalizar, cancelar]#, registrarPago]
+    inlines = [SolicitudCuidadosRecurrenteTabularInline]#, SolicitudCuidadosFechasTabularInline]
+    list_display = ['fecha', 'clientx', 'servicio', 'estado']
+    readonly_fields= ['fecha', 'montoPagado', 'estado', 'costo', 'cooperativa', 'tipo']
+    def get_queryset(self,request):
+        return super(SolicitudCuidadosAdmin, self).get_queryset(request).filter(tipo='Recurrente')
+    def queryset(self, request):
+        return (super(SolicitudCuidadosAdmin, self).queryset(request).filter(tipo='Recurrente', is_active=True))
+
+class SolicitudCuidadosAdminProxy(admin.ModelAdmin):
+    icon_name = 'gamepad'
+   # action_form = UpdateActionForm
+    actions= [asignar, finalizar, cancelar]#, registrarPago]
+    inlines = [SolicitudCuidadosFechasTabularInline]
+    list_display = ['fecha', 'clientx', 'servicio', 'estado']
+    readonly_fields= ['fecha', 'montoPagado', 'estado', 'costo', 'cooperativa', 'tipo']
+    def get_queryset(self,request):
+        return super(SolicitudCuidadosAdminProxy, self).get_queryset(request).filter(tipo='Por fecha')
+    def queryset(self, request):
+        return (super(SolicitudCuidadosAdminProxy, self).queryset(request).filter(tipo='Por fecha', is_active=True))
+
+admin.site.register(SolicitudCuidados,SolicitudCuidadosAdmin)
+admin.site.register(SolicitudCuidadosProxy,SolicitudCuidadosAdminProxy)

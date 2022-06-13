@@ -22,10 +22,8 @@ class SolicitudCuidados(models.Model):
         (3, 'Finalizada'),
         (4, 'Cancelada'),
     ]
-    tipos = {
-        (1, 'Recurrente'),
-        (2, 'Por fecha'),
-    }
+
+
     clientx = models.ForeignKey(Clientx, models.CASCADE)
     servicio = models.ForeignKey(ServicioCuidado, models.CASCADE)
     fecha = models.DateField(default=date.today)  # Día de la solicitud del servicio
@@ -35,39 +33,51 @@ class SolicitudCuidados(models.Model):
     # horaFin = models.TimeField()                                    # Hora de finalización de la solicitud del servicio
 
 
-    tipo= models.IntegerField("Tipo de servicio", choices=tipos)
-    costo = models.FloatField("Costo del servicio", null=True, blank=True, help_text='El costo es semanal')
+    tipo= models.CharField("Tipo de servico",max_length=17, default='Recurrente')
+    costo = models.FloatField("Costo del servicio", default=0, blank=True, help_text='El costo es semanal')
     montoPagado = models.FloatField(default=0)
     medioPago = models.ForeignKey(MedioPago, models.CASCADE)
     estado = models.IntegerField(choices=estados, default= 1)                         # Estados de la solicitud del servicio
     cooperativa = models.ForeignKey(Cooperativa, models.CASCADE)
 
-    def __str__(self):
-        return f"{self.fecha}: {self.clientx} - {self.servicio}"
-
-    class Meta:
-        verbose_name_plural = "Solicitudes de Cuidado"
-
     def calcular_costo(self):
-        if self.tipo== 1:
+        if self.tipo== 'Recurrente':
+            print('fssdfsfgffggf')
             horarios = SolicitudCuidadosRecurrencia.objects.filter(solicitud=self)
         else:
             horarios = SolicitudCuidadosFechas.objects.filter(solicitud=self)
         hs=0
         min=0
+        print(horarios)
         for h in horarios:
             hs = hs + float(h.tiempo[:2])
             min = min + float(h.tiempo[3:])
         hs = hs + min/60
+        print(hs)
+        print(self.servicio.costoReferencia)
         return hs*self.servicio.costoReferencia
 
 
     def save(self, *args, **kwargs):
-        self.costo = self.calcular_costo()
         self.cooperativa = Cooperativa.objects.first()
+        self.costo = self.calcular_costo()
+        print('solicitud')
         super(SolicitudCuidados, self).save(*args, **kwargs)
 
+    def __str__(self):
+        return f"{self.fecha}: {self.clientx} - {self.servicio}"
 
+    class Meta:
+        verbose_name_plural = "Solicitudes de Cuidado recurrente"
+
+# Proxy de la clase solicitud de cuidados
+class SolicitudCuidadosProxy(SolicitudCuidados):
+    class Meta:
+            proxy = True
+            verbose_name_plural = 'Solicitud de cuidados por fecha'
+    def save(self, *args, **kwargs):
+        self.tipo= 'Por fecha'
+        super(SolicitudCuidadosProxy, self).save(*args, **kwargs)
 
 class SolicitudCuidadosRecurrencia(models.Model):
     ''' Modelo para representar la recurrencia de una solicitud de un servicio realizada por unx clientx.
@@ -102,13 +112,17 @@ class SolicitudCuidadosRecurrencia(models.Model):
 			datetime.strptime(str(self.horaInicio), '%H:%M:%S')).seconds)
             self.tiempo= self.segundos_a_segundos_minutos_y_horas(segundos)
             self.cooperativa = Cooperativa.objects.first()
+            print('recurrente')
             super(SolicitudCuidadosRecurrencia, self).save(*args, **kwargs)
+            SolicitudCuidados.save(self.solicitud)
 
     def __str__(self):
         return f"{self.solicitud}: {self.dia} - Desde: {self.horaInicio} Hasta: {self.horaFin}"
 
     class Meta:
         verbose_name_plural = "Recurrencia Solicitudes de Cuidado"
+
+
 
 class SolicitudCuidadosFechas(models.Model):
     ''' Modelo para representar las fechas de una solicitud de un servicio realizada por unx clientx.
@@ -135,6 +149,7 @@ class SolicitudCuidadosFechas(models.Model):
             self.tiempo= self.segundos_a_segundos_minutos_y_horas(segundos)
             self.cooperativa = Cooperativa.objects.first()
             super(SolicitudCuidadosFechas, self).save(*args, **kwargs)
+            SolicitudCuidados.save(self.solicitud)
 
     def __str__(self):
         return f"{self.solicitud}: {self.fecha} - Desde: {self.horaInicio} Hasta: {self.horaFin}"
