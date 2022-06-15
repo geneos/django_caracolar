@@ -8,7 +8,8 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.db import models
 
-from .models import SolicitudCuidadosRecurrencia, SolicitudCuidadosFechas, SolicitudCuidados, SolicitudCuidadosProxy
+from .models import SolicitudCuidadosRecurrencia, SolicitudCuidadosFechas, SolicitudCuidados, SolicitudCuidadosProxy, \
+    SolicitudCuidadosAsignacion
 
 
 class SolicitudCuidadosRecurrenteTabularInline(admin.TabularInline):
@@ -48,20 +49,7 @@ def registrarPago(self, request, queryset):
     monto = float(monto_str)
     queryset.update(montoPagado=monto)
     messages.success(request, "Monto Pagado Actualizado correctamente")
-"""
-#Administrador Solicitud de cuidados
-class SolicitudCuidadosAdmin(admin.ModelAdmin):
-    icon_name = 'gamepad'
-   # action_form = UpdateActionForm
-    actions= [asignar, finalizar, cancelar]#, registrarPago]
-    inlines = [SolicitudCuidadosRecurrenteTabularInline, SolicitudCuidadosFechasTabularInline]
-    list_display = ['fecha', 'clientx', 'servicio', 'estado']
-    readonly_fields= ['fecha', 'montoPagado', 'estado', 'costo', 'cooperativa']
 
-    def get_queryset(self,request):
-        return super(SolicitudCuidadosAdmin, self).get_queryset(request).filter(tipo=1)
-
-admin.site.register(SolicitudCuidados,SolicitudCuidadosAdmin)"""
 
 #Administrador Solicitud de cuidados
 class SolicitudCuidadosAdmin(admin.ModelAdmin):
@@ -88,5 +76,13 @@ class SolicitudCuidadosAdminProxy(admin.ModelAdmin):
     def queryset(self, request):
         return (super(SolicitudCuidadosAdminProxy, self).queryset(request).filter(tipo='Por fecha', is_active=True))
 
+
+class SolicitudCuidadosAsignacionAdmin(admin.ModelAdmin):
+    list_display= ['asociadx', 'solicitudCuidados']
+    readonly_fields= ['cooperativa']
+
+
+
 admin.site.register(SolicitudCuidados,SolicitudCuidadosAdmin)
 admin.site.register(SolicitudCuidadosProxy,SolicitudCuidadosAdminProxy)
+admin.site.register(SolicitudCuidadosAsignacion,SolicitudCuidadosAsignacionAdmin)

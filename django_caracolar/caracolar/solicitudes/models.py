@@ -42,26 +42,21 @@ class SolicitudCuidados(models.Model):
 
     def calcular_costo(self):
         if self.tipo== 'Recurrente':
-            print('fssdfsfgffggf')
             horarios = SolicitudCuidadosRecurrencia.objects.filter(solicitud=self)
         else:
             horarios = SolicitudCuidadosFechas.objects.filter(solicitud=self)
         hs=0
         min=0
-        print(horarios)
         for h in horarios:
             hs = hs + float(h.tiempo[:2])
             min = min + float(h.tiempo[3:])
         hs = hs + min/60
-        print(hs)
-        print(self.servicio.costoReferencia)
         return hs*self.servicio.costoReferencia
 
 
     def save(self, *args, **kwargs):
         self.cooperativa = Cooperativa.objects.first()
         self.costo = self.calcular_costo()
-        print('solicitud')
         super(SolicitudCuidados, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -70,7 +65,7 @@ class SolicitudCuidados(models.Model):
     class Meta:
         verbose_name_plural = "Solicitudes de Cuidado recurrente"
 
-# Proxy de la clase solicitud de cuidados
+# Proxy de la clase solicitud de cuidados (representa la solicitud por fecha)
 class SolicitudCuidadosProxy(SolicitudCuidados):
     class Meta:
             proxy = True
@@ -112,7 +107,6 @@ class SolicitudCuidadosRecurrencia(models.Model):
 			datetime.strptime(str(self.horaInicio), '%H:%M:%S')).seconds)
             self.tiempo= self.segundos_a_segundos_minutos_y_horas(segundos)
             self.cooperativa = Cooperativa.objects.first()
-            print('recurrente')
             super(SolicitudCuidadosRecurrencia, self).save(*args, **kwargs)
             SolicitudCuidados.save(self.solicitud)
 
@@ -163,7 +157,7 @@ class SolicitudCuidadosAsignacion(models.Model):
         Debido a que puede darse el caso de servicios que lo presten múltiples asociadxs, es una relación NaN.
     '''
     asociadx = models.ForeignKey(Asociadx, models.CASCADE)
-    solicitudCuidados = models.ForeignKey(SolicitudCuidados, models.CASCADE)
+    solicitudCuidados = models.ForeignKey(SolicitudCuidados, models.CASCADE, limit_choices_to={'estado': 1})
     cooperativa = models.ForeignKey(Cooperativa, models.CASCADE)
 
     def __str__(self):
@@ -174,4 +168,6 @@ class SolicitudCuidadosAsignacion(models.Model):
 
     def save(self, *args, **kwargs):
         self.cooperativa = Cooperativa.objects.first()
+        self.solicitudCuidados.estado= 2
+        SolicitudCuidados.save(self.solicitudCuidados)
         super(SolicitudCuidadosAsignacion,self).save(*args, **kwargs)
