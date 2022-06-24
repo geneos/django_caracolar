@@ -11,8 +11,6 @@ from reportlab.pdfgen import canvas
 from .models import Clientx, CaracteristicaClientx
 from solicitudes.models import SolicitudCuidados, SolicitudCuidadosRecurrencia,SolicitudCuidadosFechas
 
-
-
 class CaracteristicaClientxTabularInline(admin.TabularInline):
     model = CaracteristicaClientx
     can_delete = True

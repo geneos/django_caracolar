@@ -1,7 +1,16 @@
 import random
+import smtplib
 import string
 from datetime import date
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
+from django.contrib import messages
+
+# Register your models here.
+
+from django.core.checks import messages
 from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
@@ -24,6 +33,9 @@ class Cooperativa(models.Model):
     ciudad = models.ForeignKey(Ciudad, models.CASCADE,null=True)
     telefono = models.CharField(max_length=20)
     email = models.CharField(max_length=100)
+    contraseña = models.CharField('Contraseña',max_length=20)
+    host = models.CharField('Email host',max_length=30)
+    port = models.IntegerField('Email port')
 
     def __str__(self):
         return f"{self.matricula},{self.razon_social}"
@@ -122,6 +134,48 @@ class Asociadx(models.Model):
     class Meta:
         verbose_name_plural = "Asociadxs"
 
+    def verificarEmail(self, cooperativa):
+        """Para verificar que toda la informacion necesaria para enviar un mail este completa"""
+        if cooperativa.email and cooperativa.contraseña and cooperativa.host and cooperativa.port:
+            return True
+        return False
+
+    def enviarEmail(self,username,clave):
+        """Enviar mail informando la clave y contraseña al cliente"""
+        try:
+            cooperativa = Cooperativa.objects.get(id=1)
+            if not self.verificarEmail(cooperativa):
+                return messages.error(self.request,'La cooperativa no tiene la informacion del email completa')
+            if not self.email:
+                return messages.error(self.request,'El usuario no tiene un mail')
+            mailServer = smtplib.SMTP(cooperativa.host,cooperativa.port)
+            mailServer.ehlo()
+            mailServer.starttls()
+            mailServer.ehlo()
+            mailServer.login(cooperativa.email, cooperativa.contraseña)
+            mensaje = MIMEMultipart()
+            mensaje.attach(MIMEText('Hola '+self.nombre+', te compartimos el usuario y la contraseña para acceder a la plataforma caracol.ar \n\n', 'plain'))
+            mensaje.attach(MIMEText('Usuario: '+username+'\n', 'plain'))
+            mensaje.attach(MIMEText('Contraseña: '+clave+'\n\n', 'plain'))
+
+            #IMAGEN
+            body = MIMEText('<p><img src="cid:myimage" /></p>', _subtype='html')
+            mensaje.attach(body)
+            img_data= open('admin-interface/logo/logo.png', 'rb').read()
+            img = MIMEImage(img_data, 'png')
+            img.add_header('Content-Id', '<myimage>')
+            img.add_header("Content-Disposition", "inline", filename="myimage")
+            mensaje.attach(img)
+            email = cooperativa.email
+            mail_to = self.email
+            mensaje['From'] = email
+            mensaje['To']= mail_to
+            mensaje['Subject'] = "Usuario caracol.ar"
+            mailServer.sendmail(email, mail_to, mensaje.as_string())
+            return messages.success(self.request, "Email enviado correctamente")
+        except Exception as e:
+            print("Error en el envio del email")
+
     def save(self, *args, **kwargs):
         username = self.nombre + '.' + self.apellido
         if not User.objects.filter(username=username).first():
@@ -131,7 +185,7 @@ class Asociadx(models.Model):
             user = User.objects.create_user(username, self.email, clave)
             user.save()
             self.usuarix = user
-        #falta el mail
+            self.enviarEmail(username, clave)
         self.cooperativa = Cooperativa.objects.first()
         super(Asociadx,self).save(*args, **kwargs)
 

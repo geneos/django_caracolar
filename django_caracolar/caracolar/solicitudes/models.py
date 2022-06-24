@@ -1,5 +1,10 @@
+import smtplib
 from datetime import date, datetime
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
+from django.contrib import messages
 from django.db import models
 
 # Create your models here.
@@ -7,8 +12,6 @@ from django.db import models
 from coops.models import Cooperativa, ServicioCuidado, Asociadx
 from clientxs.models import Clientx
 from param.models import MedioPago
-
-from param.models import Ciudad
 
 
 class SolicitudCuidados(models.Model):
@@ -53,22 +56,51 @@ class SolicitudCuidados(models.Model):
         hs = hs + min/60
         return hs*self.servicio.costoReferencia
 
+    def enviar_email(self, host, port, coop_email, coop_contraseña, destinatario, cuerpo, asunto):
+        try:
+            mail_server = smtplib.SMTP(host, port)
+            mail_server.ehlo()
+            mail_server.starttls()
+            mail_server.ehlo()
+            mail_server.login(coop_email, coop_contraseña)
+            mensaje = MIMEMultipart()
+            mensaje.attach(MIMEText(cuerpo, 'plain'))
+            # IMAGEN
+            body = MIMEText('<p><img src="cid:myimage" /></p>', _subtype='html')
+            mensaje.attach(body)
+            img_data = open('admin-interface/logo/logo.png', 'rb').read()
+            img = MIMEImage(img_data, 'png')
+            img.add_header('Content-Id', '<myimage>')
+            img.add_header("Content-Disposition", "inline", filename="myimage")
+            mensaje.attach(img)
+            email = coop_email
+            mensaje['From'] = email
+            mensaje['To'] = destinatario
+            mensaje['Subject'] = asunto
+            mail_server.sendmail(email, destinatario, mensaje.as_string())
+        except Exception:
+            print('Error al enviar el email')
 
     def save(self, *args, **kwargs):
         self.cooperativa = Cooperativa.objects.first()
         self.costo = self.calcular_costo()
+        cuerpo = "Hola " + str(self.clientx.nombre) + " se creo la siguiente solicitud:\n\n" + str(self)+"\n\n"
+        self.enviar_email(self.cooperativa.host, self.cooperativa.port, self.cooperativa.email, self.cooperativa.contraseña, self.clientx.email, cuerpo,
+                     "Creacion de solicitud caracol.ar")
         super(SolicitudCuidados, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.fecha}: {self.clientx} - {self.servicio}"
 
     class Meta:
-        verbose_name_plural = "Solicitudes de Cuidado recurrente"
+        verbose_name = "Solicitud de cuidado recurrente"
+        verbose_name_plural = "Solicitudes de cuidado recurrente"
 
 # Proxy de la clase solicitud de cuidados (representa la solicitud por fecha)
 class SolicitudCuidadosProxy(SolicitudCuidados):
     class Meta:
             proxy = True
+            verbose_name = 'Solicitud de cuidado por fecha'
             verbose_name_plural = 'Solicitud de cuidados por fecha'
     def save(self, *args, **kwargs):
         self.tipo= 'Por fecha'
@@ -103,12 +135,12 @@ class SolicitudCuidadosRecurrencia(models.Model):
         return f"{horas:02d}:{minutos:02d}"
 
     def save(self, *args, **kwargs):
-            segundos = int((datetime.strptime(str(self.horaFin), '%H:%M:%S')-
-			datetime.strptime(str(self.horaInicio), '%H:%M:%S')).seconds)
-            self.tiempo= self.segundos_a_segundos_minutos_y_horas(segundos)
-            self.cooperativa = Cooperativa.objects.first()
-            super(SolicitudCuidadosRecurrencia, self).save(*args, **kwargs)
-            SolicitudCuidados.save(self.solicitud)
+        segundos = int((datetime.strptime(str(self.horaFin), '%H:%M:%S')-
+        datetime.strptime(str(self.horaInicio), '%H:%M:%S')).seconds)
+        self.tiempo= self.segundos_a_segundos_minutos_y_horas(segundos)
+        self.cooperativa = Cooperativa.objects.first()
+        super(SolicitudCuidadosRecurrencia, self).save(*args, **kwargs)
+        SolicitudCuidados.save(self.solicitud)
 
     def __str__(self):
         return f"{self.solicitud}: {self.dia} - Desde: {self.horaInicio} Hasta: {self.horaFin}"
@@ -166,8 +198,53 @@ class SolicitudCuidadosAsignacion(models.Model):
     class Meta:
         verbose_name_plural = "Asignación de Solicitudes"
 
+    def verificar_email(self, cooperativa):
+        """Para verificar que toda la informacion necesaria para enviar un mail este completa"""
+        if cooperativa.email and cooperativa.contraseña and cooperativa.host and cooperativa.port:
+            return True
+        return False
+
+    def enviar_email(self, host, port, coop_email, coop_contraseña, destinatario, cuerpo, asunto):
+        mail_server = smtplib.SMTP(host, port)
+        mail_server.ehlo()
+        mail_server.starttls()
+        mail_server.ehlo()
+        mail_server.login(coop_email, coop_contraseña)
+        mensaje = MIMEMultipart()
+        mensaje.attach(MIMEText(cuerpo, 'plain'))
+        # IMAGEN
+        body = MIMEText('<p><img src="cid:myimage" /></p>', _subtype='html')
+        mensaje.attach(body)
+        img_data = open('admin-interface/logo/logo.png', 'rb').read()
+        img = MIMEImage(img_data, 'png')
+        img.add_header('Content-Id', '<myimage>')
+        img.add_header("Content-Disposition", "inline", filename="myimage")
+        mensaje.attach(img)
+        email = coop_email
+        mensaje['From'] = email
+        mensaje['To'] = destinatario
+        mensaje['Subject'] = asunto
+        mail_server.sendmail(email, destinatario, mensaje.as_string())
+
+    def enviar_emails(self):
+        try:
+            cooperativa = Cooperativa.objects.get(id=1)
+            a = str(self.asociadx).split()
+            mail_to_asociadx = Asociadx.objects.get(cuit=a[0]).email
+            clientx = self.solicitudCuidados.clientx
+            if not self.verificar_email(cooperativa):
+                return messages.error(self.request, 'La cooperativa no tiene la informacion del email completa')
+            if not mail_to_asociadx:
+                return messages.error(self.request, 'El usuario no tiene un mail')
+            self.enviar_email(cooperativa.host, cooperativa.port, cooperativa.email, cooperativa.contraseña, mail_to_asociadx, 'Hola '+str(self.asociadx).split()[-1]+', tenes asignada la siguiente solicitud:\n\n'+str(self.solicitudCuidados)+'\n\n', "Asignacion caracol.ar")
+            self.enviar_email(cooperativa.host, cooperativa.port, cooperativa.email, cooperativa.contraseña, clientx.email, 'Hola '+str(clientx.nombre)+', se asigno la solicitud:\n\n'+str(self.solicitudCuidados)+'\n\n al asociadx: \n\n'+str(self.asociadx.nombre)+' '+str(self.asociadx.apellido)+'\n\n', "Asignacion de solicitud caracol.ar")
+            return messages.success(self.request, "Email enviado correctamente")
+        except Exception:
+            print("Error en el envio del email")
+
     def save(self, *args, **kwargs):
         self.cooperativa = Cooperativa.objects.first()
-        self.solicitudCuidados.estado= 2
+        self.solicitudCuidados.estado = 2
         SolicitudCuidados.save(self.solicitudCuidados)
-        super(SolicitudCuidadosAsignacion,self).save(*args, **kwargs)
+        self.enviar_emails()
+        super(SolicitudCuidadosAsignacion, self).save(*args, **kwargs)

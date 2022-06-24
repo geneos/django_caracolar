@@ -1,16 +1,24 @@
 import random
+import smtplib
 import string
 from datetime import date
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 from django.contrib.auth.models import User
+from django.core.checks import messages
 from django.db import models
 
 # Create your models here.
 from coops.models import Caracteristica, Cooperativa
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
+from django.http import HttpResponseRedirect
 
 from param.models import Ciudad
+from strgen import StringGenerator
+
 
 class Clientx(models.Model):
     ''' Modelo para representar lxs clientxs que pueden solicitar servicios en la plataforma '''
@@ -31,19 +39,63 @@ class Clientx(models.Model):
     class Meta:
         verbose_name_plural = "Clientxs"
 
+    def verificarEmail(self,cooperativa):
+        """Para verificar que toda la informacion necesaria para enviar un mail este completa"""
+        if cooperativa.email and cooperativa.contraseña and cooperativa.host and cooperativa.port:
+            return True
+        return False
+
+    def enviar_email(self,username,clave):
+        """Enviar mail informando la clave y contraseña al cliente"""
+        try:
+            cooperativa = Cooperativa.objects.get(id=1)
+            if not self.verificarEmail(cooperativa):
+                return messages.error(self.request,'La cooperativa no tiene la informacion del email completa')
+            if not self.email:
+                return messages.error(self.request,'El usuario no tiene un mail')
+            mailServer = smtplib.SMTP(cooperativa.host,cooperativa.port)
+            mailServer.ehlo()
+            mailServer.starttls()
+            mailServer.ehlo()
+            mailServer.login(cooperativa.email, cooperativa.contraseña)
+            mensaje = MIMEMultipart()
+            mensaje.attach(MIMEText('Hola '+self.nombre+', te compartimos el usuario y la contraseña para acceder a la plataforma caracol.ar \n\n', 'plain'))
+            mensaje.attach(MIMEText('Usuario: '+username+'\n', 'plain'))
+            mensaje.attach(MIMEText('Contraseña: '+clave+'\n\n', 'plain'))
+
+
+            #IMAGEN
+            body = MIMEText('<p><img src="cid:myimage" /></p>', _subtype='html')
+            mensaje.attach(body)
+            img_data= open('admin-interface/logo/logo.png', 'rb').read()
+            img = MIMEImage(img_data, 'png')
+            img.add_header('Content-Id', '<myimage>')
+            img.add_header("Content-Disposition", "inline", filename="myimage")
+            mensaje.attach(img)
+
+            email = cooperativa.email
+            mail_to = self.email
+            mensaje['From'] = email
+            mensaje['To']= mail_to
+            mensaje['Subject'] = "Usuario caracol.ar"
+            mailServer.sendmail(email, mail_to, mensaje.as_string())
+            return messages.success(self.request, "Email enviado correctamente")
+        except Exception as e:
+            print("Error en el envio del email")
+
     def save(self, *args, **kwargs):
         ''' La función save cuando se ejecuta por primera vez crea un usuario para asociarle al cliente.
             Envía los datos de acceso, al correo electrónico del cliente (PENDIENTE).
         '''
         username = self.nombre + '.' + self.apellido
         if not User.objects.filter(username=username).first():
-            # clave = StringGenerator("[\l\d]{10}").render_list(3, unique=True)
+            #clave = StringGenerator("[\l\d]{10}").render_list(3, unique=True)
             chars = string.ascii_uppercase + string.digits
             clave =''.join(random.choice(chars) for _ in range(8))
             user = User.objects.create_user(username, self.email, clave)
             user.save()
             self.usuarix = user
-            #falta mandar mail
+            self.enviar_email(username, clave)
         self.cooperativa = Cooperativa.objects.first()
         super(Clientx,self).save(*args, **kwargs)
 
