@@ -1,15 +1,22 @@
 from django.shortcuts import render
+from rest_framework import viewsets, generics, status
+from rest_framework.response import Response
 
-# Create your views here.
-def ParamView(request):
-    ''' Vista para ver los tipos de servicios ofrecidos. '''
-    # tmp_ofertas = open("ofertas.html", 'w')
-    # template = Template(tmp_ofertas)
-    # tmp_ofertas.close()
-    # contexto = Context()
-    # documento = template.render(contexto)
-    # data = {
-    #     "name": "Pepo"
-    # }
-    # return render(request, "index.html", data)
-    return HttpResponse('vista')
+from .models import Ciudad, MedioPago
+from .serializers import CiudadSerializer, MedioPagoSerializer
+from rest_framework import permissions
+
+#mostrar todas las ciudades pero no se puedan agragar
+class CiudadViewList(generics.ListAPIView):
+    serializer_class = CiudadSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    def get_queryset(self):
+        return Ciudad.objects.all()
+
+#mostrar todas los medios de pago pero no se puedan agragar
+class MedioPagoViewList(generics.ListAPIView):
+    serializer_class = MedioPagoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    def get_queryset(self):
+        return MedioPago.objects.all()
+

@@ -13,7 +13,10 @@ import os
 from pathlib import Path
 import environ
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+#from coops.models import Cooperativa
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env()
@@ -32,7 +35,7 @@ DJANGO_SUPERUSER_PASSWORD= env('DJANGO_SUPERUSER_PASSWORD')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -52,6 +55,13 @@ INSTALLED_APPS = [
     'coops',
     'clientxs',
     'solicitudes',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'dj_rest_auth',
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
 ]
 
 X_FRAME_OPTIONS = "SAMEORIGIN"
@@ -63,6 +73,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    #'django_otp.middleware.OTPMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -98,7 +109,7 @@ DATABASES = {
         'USER': env('DATABASE_USER'),
         'PASSWORD': env('DATABASE_PASS'),
         'HOST': 'localhost',
-        'PORT': '',
+        'PORT': '5432',
     }
 }
 
@@ -151,3 +162,69 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+SITE_ID = 1
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+       # 'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
+         #'rest_framework.permissions.IsAuthenticated', # permiso para que no se puede ver sin estar iniciado sesion
+    ],
+}
+
+
+#Para enviar mail api
+ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False # a personal preference. True by default. I don't want users to be interrupted by logging in
+ACCOUNT_AUTHENTICATION_METHOD = 'email'  # a personal preference. I don't want to add 'i don't remember my username' like they did at Nintendo, it's stupid
+ACCOUNT_LOGIN_ON_PASSWORD_RESET = True  # False by default
+ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = True  # True by default
+# ACCOUNT_LOGOUT_REDIRECT_URL = '/login'
+ACCOUNT_USERNAME_BLACKLIST = ['suka', 'blyat',]  # :D
+ACCOUNT_USERNAME_MIN_LENGTH = 4  # a personal preference
+ACCOUNT_SESSION_REMEMBER = True  # None by default (to ask 'Remember me?'). I want the user to be always logged in
+
+
+ACCOUNT_LOGOUT_REDIRECT_URL = '/account/login/'
+LOGIN_REDIRECT_URL = '/account/email/'
+AUTH_USER_MODEL = 'auth.User'#'generalapp.CustomUser'
+
+ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False  # a personal preference. True by default. I don't want users to be interrupted by logging in
+ACCOUNT_AUTHENTICATION_METHOD = 'email'  # a personal preference. I don't want to add 'i don't remember my username' like they did at Nintendo, it is stupid
+
+ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL ='email_success'  # a page to identify that email is confirmed when not logged in
+ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL ='email_success'  # same but logged in
+UNIQUE_EMAIL = True
+ACCOUNT_EMAIL_SUBJECT_PREFIX= " "
+
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 7  # a personal preference. 3 by default
+ACCOUNT_EMAIL_REQUIRED = True  # no questions here
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # as the email will be used for login
+ACCOUNT_LOGIN_ON_PASSWORD_RESET = True  # False by default
+ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = True  # True by default
+# ACCOUNT_LOGOUT_REDIRECT_URL = '/account/login'
+ACCOUNT_USERNAME_BLACKLIST = ['yomama',]
+ACCOUNT_USERNAME_MIN_LENGTH = 4  # a personal preference
+ACCOUNT_SESSION_REMEMBER = True  # None by default (to ask 'Remember me?'). I want the user to be always logged in
+
+AUTHENTICATION_BACKENDS = (
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+    # `allauth` specific authentication methods, such as login by e-mail
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+#coop = Cooperativa.objects.get(id=1)
+EMAIL_HOST = 'smtp.googlemail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  #
+
+

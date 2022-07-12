@@ -18,7 +18,7 @@ from django.http import HttpResponseRedirect
 
 from param.models import Ciudad
 from strgen import StringGenerator
-
+from rest_framework.authtoken.models import Token
 
 class Clientx(models.Model):
     ''' Modelo para representar lxs clientxs que pueden solicitar servicios en la plataforma '''
@@ -32,6 +32,7 @@ class Clientx(models.Model):
     ingreso = models.DateField("Fecha de ingreso", default=date.today)
     cooperativa = models.ForeignKey(Cooperativa, models.CASCADE)
     usuarix = models.ForeignKey(User, models.CASCADE, blank=True, null=True)
+
 
     def __str__(self):
         return f"{self.cuit} - {self.apellido}, {self.nombre}"

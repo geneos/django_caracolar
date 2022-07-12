@@ -26,17 +26,18 @@ class SolicitudCuidados(models.Model):
         (4, 'Cancelada'),
     ]
 
+    tipo = [
+        ('Recurrente', 'Recurrente'),
+        ('Por fecha', 'Por fecha'),
+    ]
 
     clientx = models.ForeignKey(Clientx, models.CASCADE)
     servicio = models.ForeignKey(ServicioCuidado, models.CASCADE)
     fecha = models.DateField(default=date.today)  # Día de la solicitud del servicio
-
-    # Cambio por anexo de modelo SolicitudCuidadosFechas
-    # horaInicio = models.TimeField()                                 # Hora de inicio de la solicitud del servicio
-    # horaFin = models.TimeField()                                    # Hora de finalización de la solicitud del servicio
-
-
-    tipo= models.CharField("Tipo de servico",max_length=17, default='Recurrente')
+    infantes= models.IntegerField( default=0, blank=True)
+    preadolescentes= models.IntegerField( default=0, blank=True)
+    adolecentes = models.IntegerField( default=0, blank=True)
+    tipo= models.CharField("Tipo de servico", max_length=17, choices=tipo)
     costo = models.FloatField("Costo del servicio", default=0, blank=True, help_text='El costo es semanal')
     montoPagado = models.FloatField(default=0)
     medioPago = models.ForeignKey(MedioPago, models.CASCADE)
@@ -82,11 +83,19 @@ class SolicitudCuidados(models.Model):
             print('Error al enviar el email')
 
     def save(self, *args, **kwargs):
+        if (self.tipo == ''):
+            self.tipo= 'Recurrente'
         self.cooperativa = Cooperativa.objects.first()
         self.costo = self.calcular_costo()
-        cuerpo = "Hola " + str(self.clientx.nombre) + " se creo la siguiente solicitud:\n\n" + str(self)+"\n\n"
-        self.enviar_email(self.cooperativa.host, self.cooperativa.port, self.cooperativa.email, self.cooperativa.contraseña, self.clientx.email, cuerpo,
+        if self.estado == 1:
+            cuerpo = "Hola " + str(self.clientx.nombre) + " se creo la siguiente solicitud:\n\n" + str(self)+"\n\n"
+            self.enviar_email(self.cooperativa.host, self.cooperativa.port, self.cooperativa.email, self.cooperativa.contraseña, self.clientx.email, cuerpo,
                      "Creacion de solicitud caracol.ar")
+        if self.estado == 4:
+            cuerpo = "Hola " + str(self.clientx.nombre) + " se cancelo la siguiente solicitud:\n\n" + str(self)+"\n\n"
+            self.enviar_email(self.cooperativa.host, self.cooperativa.port, self.cooperativa.email, self.cooperativa.contraseña, self.clientx.email, cuerpo,
+                     "Canclacion de solicitud caracol.ar")
+
         super(SolicitudCuidados, self).save(*args, **kwargs)
 
     def __str__(self):

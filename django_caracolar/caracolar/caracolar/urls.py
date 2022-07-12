@@ -18,6 +18,13 @@ from django.urls import path, include
 
 from django.conf import settings
 from django.conf.urls.static import static
+from rest_framework.routers import DefaultRouter
+
+from . import views
+from .views import email_view
+
+router = DefaultRouter()
+router.register('users', email_view, basename='user')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,9 +35,17 @@ urlpatterns = [
     path('param/', include('param.urls')),
     path('solicitudes/', include('solicitudes.urls')),
     path('clientxs/', include('clientxs.urls')),
+    path('user/authentication/', include('dj_rest_auth.urls')),
+    path('user/registration/', include('dj_rest_auth.registration.urls')),
+    path('account/', include('allauth.urls')),
+    path('email_view/', include(router.urls)),
+    path('email_success/', views.email_success, name='email_success')
+
+
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:
     from django.conf.urls.static import static
     urlpatterns += static(settings.MEDIA_URL,
         document_root=settings.MEDIA_ROOT)
+
